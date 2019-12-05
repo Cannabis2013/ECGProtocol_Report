@@ -4,4 +4,6 @@
 *.bbl
 *.blg
 *.run
-*.xm
+*.xml
+*.out
+*.pdf
