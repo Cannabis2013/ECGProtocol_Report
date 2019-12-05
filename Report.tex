@@ -82,14 +82,13 @@
 	
 	\section{ECG protocol design}
 	
-	\begin{adjustwidth}{\tWidth}{0cm}
+	\iPar{
 		First of all, all transmission up until now is based on the UDP protocol which in large parts is considered unreliable as no guarantee exists that packets will reach its destination; nor does the sender know if this is the case as, unlike the TCP/IP protocol, which is stable and reliable, and de facto the prefered protocol, UDP does transmission on a 'fire and forget' basis. That means, the sending device doesn't wait for a reply from the end point, a reply that otherwise could have indicated safe arrival. However, UDP enables some type of integrety check on the recieving part; so in fact, the reciever is able to verify if the packet has arrived intact.\ This thou, relies on some kind of checksum algorithm which could vary on quality dependent on the algorithm implemented.\\
 		
 		We want to offer a protocol that resembles the behavour of the stable and more reliable TCP/IP protocol which includes several connection states, packet inspection and last and most important: packet acknowledgement, which means that sender waits for a confirming reply which indicates the packet has reached its destination. To do so, we first of all divides the transmission into three states as outlined:
 		
 		\begin{itemize}
 			\item INITIAL STATE\\
-			
 			This state includes a so-called \textit{handshake} which includes exchange of connection details regarding adresses, unique identifications and more. This state is important as it also is responsible for creating a \textit{channel} which can't be broken until the last state. This means that the listening device won't be able to recieve packets from other devices until the channel is broken.
 			
 			\item TRANSFER STATE\\
@@ -102,7 +101,8 @@
 		
 		As mentionen in the previous outline, we don't accept packet loss as reliability has first priority. Of course, this has some consequences with regard to overall transmission time and connection demands, which is covered in a latere section. When a client sends a packet to a listener device, it waits for a reply before proceding, ensuring no packet loss. All this means, that packets is transmitted in a strict order\footnote{Packets are recieved in the same order they were sent.} ensuring stability as well as reliability.\\
 		
-	\end{adjustwidth}
+		In the case of bad connection where a client goes offline for whatever reason or the connection is sluggish, the protocol operates with a combination of timeout and connection attempts to adress these issues. When the client awaits a reply, it does this for \textit{n} attempts of each \textit{m} millisonds, which corresponds to a timeout value passed by as argument. The number of attempts varies after the state it happens to be in. To avoid a failure where data has been sent to the listener device and the client just awaits an acknowledgement that all data has arrived safely, the number of attempts is increased in comparison to the number of attempts in the \code{INIT} state for an example.
+		}
 	
 	\section{ECG protocol implementation}
 	\section{Validation and results}
