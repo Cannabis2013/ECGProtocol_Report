@@ -1,1 +1,11 @@
-*/toc
+*.toc
+*.aux
+*.run
+*.synctex
+*.bbl
+*.log
+*.gz
+*.xml
+*.pdf
+*.blg
+*.out
