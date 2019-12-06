@@ -1,9 +1,1 @@
-*.gz
-*.aux
-*.log
-*.bbl
-*.blg
-*.run
-*.xml
-*.out
-*.pdf
+*/toc

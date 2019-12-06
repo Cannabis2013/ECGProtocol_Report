@@ -7,7 +7,10 @@
 \usepackage{float}
 \usepackage{tabularx}
 \usepackage{changepage}
+\usepackage{listings}
 
+\usepackage{color}
+\usepackage[utf8]{inputenc}
 
 % Set up hyperlinks formatting
 \hypersetup{
@@ -15,6 +18,41 @@
 	linkcolor={black!50!black},
 	citecolor={blue!50!black},
 	urlcolor={blue!80!black}
+}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+
+\lstset{
+	backgroundcolor=\color{black},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+	basicstyle=\tiny\color{white},   % the size of the fonts that are used for the code
+	breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+	breaklines=true,                 % sets automatic line breaking
+	captionpos=b,                    % sets the caption-position to bottom
+	commentstyle=\color{mygreen},    % comment style
+	deletekeywords={...},            % if you want to delete keywords from the given language
+	escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+	extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+	firstnumber=1,                	 % start line enumeration with line 1000
+	frame=visible,                   % adds a frame around the code
+	keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+	%keywordstyle=\color{yellow},    % keyword style
+	language=Octave,                 % the language of the code
+	morekeywords={*,...},            % if you want to add more keywords to the set
+	numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+	numbersep=5pt,                   % how far the line-numbers are from the code
+	numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+	rulecolor=\color{white},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+	showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+	showstringspaces=false,          % underline spaces within strings only
+	showtabs=false,                  % show tabs within strings adding particular underscores
+	stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
+	stringstyle=\color{mymauve},     % string literal style
+	tabsize=2,	                     % sets default tabsize to 2 spaces
+	title=\lstname,					 % show the filename of files included with \lstinputlisting; also try caption instead of title
+	language=C,
 }
 
 \newcommand{\code}[1]{\texttt{#1}}
@@ -54,57 +92,110 @@
 	
 	\pagebreak
 	
+	\tableofcontents
+	
+	\pagebreak
+	
 	\section{Introduction}
 	
 	%TODO: Give a short description of the problem
+	\section[Data structure]{Data structure and introduction of PDU and SDU}
+	The PDU (Protocol Data Units) is part of the OSI (Open System Interconnections) model and is defined as a single unit holding information to be transmitted between peers located on a network. Each of these PDU's has different names depending on the given protocol and they act as a sort of contract between communicating parties. In the TCP/IP protocol, a PDU is referred to as a \textit{segment} and a \textit{datagram} in the UDP protocol. As network services is typically organized in layers, ranging from the physical layer to the application layer, each assigned different roles, our protocol is structured into two layers of abstraction. It is not uncommon that the higher level of layers uses a structure called \textit{SDU(Service Data Unit)} that the lower layers doesn't understand, and as such, the \textit{SDU} needs to be encapsulated. This is done by transmitting the SDU as the payload of a PDU, providing additional details regarding destination and protocol information, which enables the lower layer to know what to do with the payload\cite{PDU}.\\
 	
-	\section{First, a little note about the overall packet structure and introduction of the PDU}
-	\iPar{
-	The PDU (Protocol Data Units) is part of the OSI model and is defined as a single unit holding information to be transmitted between peers located on a network. Each of these PDU's has different names depending on the given protocol and they act as a sort of contract between the communicating parties. In the TCP/IP protocol, a PDU is referred to as a \textit{segment} and a \textit{datagram} in the UDP protocol. As network services is typically organized in layers, ranging from the physical layer to the application layer, each assigned different roles, our protocol is structured into two layers of abstraction. It is not uncommon that the higher level of layers uses a structure called \textit{SDU(Service Data Unit)} that the lower layers doesn't understand, and as such, the \textit{SDU} needs to be encapsulated. This is done by transmitting the SDU as the payload of a PDU, providing additional details regarding destination and protocol information, which enables the lower layer to know what to do with the payload\cite{PDU}.\\
-	
-	Throughout our design and implementation the data structure used is wrapped into these PDU's  and SDU's (we refer to these in plural as xDU's for simplicity reasons) which provides the basis of our protocol. These xDU's is for the most part C structures with fields appropriate for the task, but especially one type of structure stands out, and that is the \code{union} structure. The \code{union} structure is characterized by its memory alignment properties which means that all of its fields shares the same memory adress, aligned according to each other. This means only one field is initialized at a time, and each field somehow evaluates to another field upon called. The memory consumption of a \code{union} structure is no more than its most memory consuming field, and as of this, this was the way to go when choosing our overall xDU structure. This made it very easy to handle with respect to transmitting data, as the main xDU consists of either a structure or a RAW char array which, copied over to another xDU's RAW array, allowing what is sometimes known as a deep copy.}
+	Throughout our design and implementation the data structure used is wrapped into these PDU's  and SDU's (we refer to these in plural as xDU's for simplicity reasons) which provides the basis of our protocol. These xDU's is for the most part C structures with fields appropriate for the task, but especially one type of structure stands out, and that is the \code{union} structure. The \code{union} structure is characterized by its memory alignment properties which means that all of its fields shares the same memory adress, aligned according to each other. This means only one field is initialized at a time, and each field somehow evaluates to another field upon called. The memory consumption of a \code{union} structure is no more than its most memory consuming field, and as of this, this was the way to go when choosing our overall xDU structure. This made it very easy to handle with respect to transmitting data, as the main xDU consists of either a structure or a RAW char array which, copied over to another xDU's RAW array, allowing what is sometimes known as a deep copy.
 	
 	\section{Radio link emulation}
 	
-	\iPar{
-		The radio link describes the lowest layer of abstraction located atop of the hardware chip. Its PDU is referred to as a frame and consists of meta information suited for information exchange between to communicating parties, and of course holding the payload. As mentioned, this layer is not aware of the structure passed by its argument \code{char *data}, and its sole purpose is to encapsulate this into a frame and transmit it to its appropriate destination. The frame consists of typical fields expected of a regular PDU, that is source and destination adresses, lenght of payload and among other fields a unique magic key identifying the radio device. All were implemented in the frame structure but not used as they were implemented in an alternative way. That applies for an example the preeamble field that didn't find its way into usage as the devices synchonizes in another way. For a synchronously connection, a channel has to be established, and for that, we use a structure named \code{remote}, which consists of a magic key field, an integer field indicating whether the device is locked to another or not, and an adress field holding the peer adress. \\
-		
-		First, as given in the assignment requirements, the radio devices won't be able to send or recieve data without a preceding call to \code{radio\_init(adrs)}. This is due to the obvious reason, that a socket has to be initialized and made ready to send or recieve data. When a device is succesfully initialized, it is binded to its local adress (which in this case is a UDP port) meaning it is setup to listening on this adress (this is actually enough on the UDP protocol, further steps is required if the protocol is set to TCP/IP). First and foremost, adress and port validation is performed to avoid any error related to wrong adress types or ports that aren't within our desired range. A valid adress means an IPv4 compliant adress structure(in our protocol it is constrained to \code{Localhost}) and we define valid ports as either contained in the registered or dynamic port range (1024 -65335). 
-		}
+	The radio link describes the lowest layer of abstraction located atop of the hardware chip. Its PDU is referred to as a frame and consists of meta information suited for information exchange between to communicating parties, and of course holding the payload. As mentioned, this layer is not aware of the structure passed by its argument \code{char *data}, and its sole purpose is to encapsulate this into a frame and transmit it to its appropriate destination. The frame consists of typical fields expected of a regular PDU, that is source and destination adresses, lenght of payload and among other fields a unique magic key identifying the radio device. All were implemented in the frame structure but not used as they were implemented in an alternative way. That applies for an example the preeamble field that didn't find its way into usage as the devices synchonizes in another way. For a synchronously connection, a channel has to be established, and for that, we use a structure named \code{remote}, which consists of a magic key field, an integer field indicating whether the device is locked to another or not, and an adress field holding the peer adress. \\
 	
-	\subsection{Frame structure}
+	First, as given in the assignment requirements, the radio devices won't be able to send or recieve data without a preceding call to \code{radio\_init(adrs)}. This is due to the obvious reason, that a socket has to be initialized and made ready to send or recieve data. When a device is succesfully initialized, it is binded to its local adress (which in this case is a UDP port) meaning it is setup to listening on this adress (this is actually enough on the UDP protocol, further steps is required if the protocol is set to TCP/IP). First and foremost, adress and port validation is performed to avoid any error related to wrong adress types or ports that aren't within our desired range. A valid adress means an IPv4 compliant adress structure(in our protocol it is constrained to \code{Localhost}) and we define valid ports as either contained in the registered or dynamic port range (1024 -65335).
 	
-	\subsubsection{Magic key}
+	\subsection{A little note about the magic key}
 	
-	\iPar{
-		The magic key is calculated by an algorithm found on the internet and provided by a person named Jeff Preshing which is a canadian programmer and hosting a website/blog related to programming and algorithms in python and c++. The algorithm primarily works by creating $2^{32}$ unique mappings of a 32 bit integer. For this to work, he use a property of prime numbers in which there exists quadratic residues $x^2$ \code{mod} $p$ such that every $x$ that satisfies $2x < p$ is a unique number. A full description of his algorithm can be found at \cite{Preshing}. It should be noted that the use of this magic key is limited and is intended to be used to reject requests from other devices while a channel has been established. It is limited in the sense, that the algorithm is not correctly implemented with regard to the seed part, as we haven't implemented a proper seed method to ensure that the outcome is uniformly distrubuted with minimal risk of collusions. }
-	
+	The magic key is calculated by an algorithm found on the internet and provided by a person named Jeff Preshing which is a canadian programmer and hosting a website/blog related to programming and algorithms in python and c++. The algorithm primarily works by creating $2^{32}$ unique mappings of a 32 bit integer. For this to work, he use a property of prime numbers in which there exists quadratic residues $x^2$ \code{mod} $p$ such that every $x$ that satisfies $2x < p$ is a unique number. A full description of his algorithm can be found at \cite{Preshing}. It should be noted that the use of this magic key is limited and is intended to be used to reject requests from other devices while a channel has been established. It is limited in the sense, that the algorithm is not correctly implemented with regard to the seed part, as we haven't implemented a proper seed method to ensure that the outcome is uniformly distrubuted with minimal risk of collusions.
 	
 	\section{ECG protocol design}
 	
-	\iPar{
-		First of all, all transmission up until now is based on the UDP protocol which in large parts is considered unreliable as no guarantee exists that packets will reach its destination; nor does the sender know if this is the case as, unlike the TCP/IP protocol, which is stable and reliable, and de facto the prefered protocol, UDP does transmission on a 'fire and forget' basis. That means, the sending device doesn't wait for a reply from the end point, a reply that otherwise could have indicated safe arrival. However, UDP enables some type of integrety check on the recieving part; so in fact, the reciever is able to verify if the packet has arrived intact.\ This thou, relies on some kind of checksum algorithm which could vary on quality dependent on the algorithm implemented.\\
+	
+	First of all, all transmission up until now is based on the UDP protocol which in large parts is considered unreliable as no guarantee exists that packets will reach its destination; nor does the sender know if this is the case as, unlike the TCP/IP protocol, which is stable and reliable, and de facto the prefered protocol, UDP does transmission on a 'fire and forget' basis. That means, the sending device doesn't wait for a reply from the end point, a reply that otherwise could have indicated safe arrival. However, UDP enables some type of integrety check on the recieving part; so in fact, the reciever is able to verify if the packet has arrived intact.\ This thou, relies on some kind of checksum algorithm which could vary on quality dependent on the algorithm implemented.\\
+	
+	We want to offer a protocol that resembles the behavour of the stable and more reliable TCP/IP protocol which includes several connection states, packet inspection and last and most important: packet acknowledgement, which means that sender waits for a confirming reply which indicates the packet has reached its destination. To do so, we first of all divides the transmission into three states as outlined:
+	
+	\begin{itemize}
+		\item INITIAL STATE\\
+		This state includes a so-called \textit{handshake} which includes exchange of connection details regarding adresses, unique identifications and more. This state is important as it also is responsible for creating a \textit{channel} which can't be broken until the last state. This means that the listening device won't be able to recieve packets from other devices until the channel is broken.
 		
-		We want to offer a protocol that resembles the behavour of the stable and more reliable TCP/IP protocol which includes several connection states, packet inspection and last and most important: packet acknowledgement, which means that sender waits for a confirming reply which indicates the packet has reached its destination. To do so, we first of all divides the transmission into three states as outlined:
-		
+		\item TRANSFER STATE\\
+		This is the next state where, if the handshake went well, the actually data transfer takes place. There exists two scenarious thou that we have to deal with in order to process packet loss:
 		\begin{itemize}
-			\item INITIAL STATE\\
-			This state includes a so-called \textit{handshake} which includes exchange of connection details regarding adresses, unique identifications and more. This state is important as it also is responsible for creating a \textit{channel} which can't be broken until the last state. This means that the listening device won't be able to recieve packets from other devices until the channel is broken.
-			
-			\item TRANSFER STATE\\
-			This is the next state where, if the handshake went well, the actually data transfer takes place. Details will be covered later explaining the modus operandi of this procedure.
-			
-			\item COMPLETE STATE
-			
-			The final state is reached when all the data is transmitted and everything went fine with respect to integrety checks and connection errors. In general, we don't accept packet loss, this will be explained in the following section. 
+			\item The network interface fails to deliver the data to its destination, and therefore, the listener device is unable to obtain the data.
+			\item The network interface fails to deliver acknowledgement packet that notifies the client that data has arrived.
 		\end{itemize}
 		
-		As mentionen in the previous outline, we don't accept packet loss as reliability has first priority. Of course, this has some consequences with regard to overall transmission time and connection demands, which is covered in a latere section. When a client sends a packet to a listener device, it waits for a reply before proceding, ensuring no packet loss. All this means, that packets is transmitted in a strict order\footnote{Packets are recieved in the same order they were sent.} ensuring stability as well as reliability.\\
+		In both cases, the client doesn't know which one of the scenarious that is the case, but the solution to this problem will be accounted for in the implementation section.
 		
-		In the case of bad connection where a client goes offline for whatever reason or the connection is sluggish, the protocol operates with a combination of timeout and connection attempts to adress these issues. When the client awaits a reply, it does this for \textit{n} attempts of each \textit{m} millisonds, which corresponds to a timeout value passed by as argument. The number of attempts varies after the state it happens to be in. To avoid a failure where data has been sent to the listener device and the client just awaits an acknowledgement that all data has arrived safely, the number of attempts is increased in comparison to the number of attempts in the \code{INIT} state for an example.
-		}
+		\item COMPLETE STATE
+		
+		The final state is reached when all the data is transmitted and everything went fine with respect to integrety checks and connection errors. In general, we don't accept packet loss, this will be explained in the following section. 
+	\end{itemize}
+	
+	As mentionen in the previous outline, we don't accept packet loss as reliability has first priority. Of course, this has some consequences with regard to overall transmission time and connection demands, which is covered in a latere section. When a client sends a packet to a listener device, it waits for a reply before proceding, ensuring no packet loss. All this means, that packets is transmitted in a strict order\footnote{Packets are recieved in the same order they were sent.} ensuring stability as well as reliability.\\
 	
 	\section{ECG protocol implementation}
+	
+	\subsection{SDU}
+	As mentionen previously, we use \code{struct} and \code{union} structures to transmit data through layer or network. Our SDU structure is first of all divided into the following types:
+	
+	\begin{itemize}
+		\item INIT
+		\item ACK
+		\item P\_ACK
+		\item COMPLETE
+		\item P\_CHECKSUM\_FAIL
+		\item RESEND
+	\end{itemize}
+	
+	This is crucial for the whole transmission process as they are a vital part of the control flow and ensures the reliability of the protocol.\\
+	
+	The SDU has the following structure:
+	
+	\begin{lstlisting}
+	typedef struct
+	{
+		type_t  type;
+	}Type;
+	
+	typedef struct
+	{
+		Type    type; // Allocates 1 bytes for type identification
+	
+	}Header; // Allocates 1 bytes
+	
+	typedef struct
+	{
+		Type    type; // Allocates 1 byte
+		uint    size; // Allocates 4 bytes
+		ushort  checksum; // Allocates 2 bytes
+		char    data[FRAME_PAYLOAD_SIZE]; // 128 bytes allocated
+	}Chunk; // Allocates 135 bytes
+	
+	
+	typedef union
+	{
+		char    raw[CHUNK_SIZE];
+	
+		Header  header;
+		Chunk   chunk;
+	}Packet;\end{lstlisting}
+	
+	The packet is either initialized with a Header or chunk structure which saves memory and simplicifies things a bit when passing this to the lower layers PDU data structure.\\
+	
+	As seen from the snippet, we use a payload size of 128 bytes which adds up to a 135 bytes chunk data structure. In fact, we could have used chunk sizes of up to 2400 bytes as we don't accept packet loss but we wanted to reduce the risks of interrupting the connection due to packet loss.
+
+	\subsection{Connection difficulties}
+	
+	In the case of bad connection where a client goes offline for whatever reason or the connection is sluggish, the protocol operates with a combination of timeout and connection attempts to adress these issues. When the client awaits a reply, it does this for \textit{n} attempts of each \textit{m} millisonds, which corresponds to a timeout value passed by as argument. The number of attempts varies after the state it happens to be in. To avoid a failure where data has been sent to the listener device and the client just awaits an acknowledgement that all data has arrived safely, the number of attempts is increased in comparison to the number of attempts in the \code{INIT} state for an example.
+	
 	\section{Validation and results}
 	\section{Conclusion}
 	
